@@ -14,7 +14,7 @@
 
 #define ISspace(x) isspace((int)(x))
 
-#define SERVER_STRING "Xm Server: Version 0.1\r\n" //定义个人server名称
+#define SERVER_STRING "Xm tiny Server: Version 0.1\n" //定义个人server名称
 
 #define ERR_EXIT(m) \
         do \
@@ -145,7 +145,7 @@ void *accept_request(void *from_client)
 			//S_IXGRP:用户组具可执行权限
 			//S_IXOTH:其他用户具可读取权限
 			cgi = 1;
-		printf("%s\n",cgi==0?"execute_cgi":"serve_file");
+		printf("%s\n",cgi==1?"execute_cgi":"serve_file");
 		if (!cgi)//如果是访问目录,这里跳转到httpdocs/test.html
 			serve_file(client, path);
 		else
@@ -153,7 +153,7 @@ void *accept_request(void *from_client)
 	}
 
 	close(client);
-	printf("connection close....client: %d \n",client);
+	printf("connection close....client: %d \n\n\n",client);
 	return NULL;
 }
 
@@ -196,7 +196,7 @@ void cannot_execute(int client)
 	send(client, buf, strlen(buf), 0);
 	sprintf(buf, "\r\n");
 	send(client, buf, strlen(buf), 0);
-	sprintf(buf, "<P>Error prohibited CGI execution.\r\n");
+	sprintf(buf, "<B>Error prohibited CGI execution.\r\n</B>");
 	send(client, buf, strlen(buf), 0);
 }
 
@@ -314,11 +314,11 @@ void execute_cgi(int client, const char *path,
 		//发送给浏览器
 			send(client, &c, 1, 0);
 
-		//运行结束关闭
+		//关闭管道
 		close(cgi_output[0]);
 		close(cgi_input[1]);
 
-		waitpid(pid, &status, 0);
+		waitpid(pid, &status, 0);//等待子进程结束
 	}
 }
 
@@ -356,6 +356,7 @@ int get_line(int sock, char *buf, int size)
 	return (i);
 }
 
+//拼接http请求头
 void headers(int client, const char *filename)
 {
 
@@ -373,7 +374,7 @@ void headers(int client, const char *filename)
 	send(client, buf, strlen(buf), 0);
 }
 
-//404 文件资源不存在
+//请求的文件资源不存在
 void not_found(int client)
 {
 	char buf[1024];
@@ -485,7 +486,7 @@ void unimplemented(int client)
 int main(void)
 {
 	int server_sock = -1;
-	u_short port = 6379; //默认监听端口号 port 为6379
+	u_short port = 6600; //默认监听端口号 port 为6600
 	int client_sock = -1;
 	struct sockaddr_in client_name;
 	socklen_t client_name_len = sizeof(client_name);
